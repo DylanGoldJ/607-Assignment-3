@@ -1,0 +1,15 @@
+---
+title: "607Assignment3B Dylan Gold"
+format: html
+editor: visual
+---
+
+## 607 Assignment 3B Dylan Gold
+
+# Approach
+In this assignment we have to work with a data set that has time series.
+We have to find/generate a data set then use sql or dplyr to calculate the average from year to year, as well as every 6 days
+I will find something online, maybe ask a LLM to generate one or give me ideas.
+
+I will likely get the data as a csv onto github then use dplyr to create these averages after importing the data into R
+
