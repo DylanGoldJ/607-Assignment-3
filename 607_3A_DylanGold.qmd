@@ -26,4 +26,84 @@ Ideally I can create a function that does this when given a data frame.
 
 # Codebase:
 
-After setting up the data in github for the raw, I perform the usual setup for the R envrionment.
+After setting up the data in github for the raw, I perform the usual setup for the R environment.
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+Getting data into data frame
+```{r, message=FALSE, warning=FALSE}
+url <- "https://raw.githubusercontent.com/DylanGoldJ/607-Assignment-3/refs/heads/main/MovieRatings3A.csv"
+
+df <- read_csv(
+  file = url,
+  col_names = FALSE # No headers in the csv, needed.
+)
+
+
+head(df, 10)
+```
+
+The problem statement missed the headers, I put them back
+
+```{r}
+
+df <- df %>% set_names("Critic", "CaptainAmerica", "Deadpool", "Frozen", "JungleBook", "PitchPerfect2", "StarWarsForce")
+
+tail(df, 5)
+```
+Now:
+Create baseline from average of all movies.
+Generate averages of users
+Generate averages of movies
+
+Create a vector for the averages of the columns(Movie avg)
+```{r}
+# I create movies for easier selection
+movies <- c("CaptainAmerica", "Deadpool", "Frozen", "JungleBook", "PitchPerfect2", "StarWarsForce")
+# This following line was kind of tricky for me. My understanding is ~ creates a function where the period is the input. across uses this function down the columns
+# The function we created with ~ is just get the mean with all the column values as input, we also specify the columns before hand.
+movie_avg <- df %>% summarize(across(movies, ~ mean(., na.rm = TRUE)))
+movie_avg
+```
+
+Get the user_mean
+```{r}
+user_avg <- df %>%
+  rowwise() %>%
+  summarize(user_mean = mean(c_across(movies), na.rm = TRUE)) #c_across with rowwise to perform row-wise aggregations
+user_avg
+```
+Lets combine this with the names for readability and usability 
+We can use bind_col
+```{r}
+user_avg <- bind_cols(select(df, c("Critic")), user_avg)
+user_avg
+```
+
+
+Now we get the global baseline average:
+From what I seen online we can just convert to a matrix for this
+```{r}
+df_matrix <- as.matrix(select(df, movies)) #Create matrix, get rid of the column with character values
+global_avg <- mean(df_matrix, na.rm = TRUE)
+global_avg 
+```
+
+We now have the values for user_avg, movie_avg and global_avg. We can check with the excel file to double check our values and it seems alright.
+
+Now we can calculate the movie scores for unseen movies. I will first create a function so we can apply it to the whole data frame.
+First a function that can create the estimate
+```{r}
+create_estimate <- function(user, movie, user_mean, movie_mean, global_mean)
+
+```
+
+
+This function will take the information we just calculated, the data frame and return a data frame with all the values filled in.
+```{r}
+create_estimate_df <- function(df, user_mean, movie_mean, global_mean)
+
+```
+
+
