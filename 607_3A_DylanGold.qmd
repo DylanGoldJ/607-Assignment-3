@@ -1,0 +1,24 @@
+---
+title: "607Assignment3A Dylan Gold"
+format: html
+editor: visual
+---
+
+## 607 Assignment 3A Dylan Gold
+
+# Approach
+In this assignment we are making a rating system based on the ratings in assignment 2A or new data given.
+Initially I was pretty confused just looking off the xlsx document we had. Maybe I missed something there but I did not see much in the 4 tables in the document.
+After the class lecture though I understood a bit better.
+
+I will use the data given to us. The data I collected is pretty high ratings cause I just picked shows that I liked, and my friends have discussed who also generally like. So it seems kind of biased for a global baseline.
+
+From the lecture we break this down into these steps:
+Create baseline from average of all movies.
+Generate averages of users
+Generate averages of movies
+Create baseline user and movie averages from difference from overall baseline.
+Create specific unseen movies ratings from sum of baseline global,baseline user and baseline movie ratings.
+Perhaps recommend movie based on highest unseen for each user? (at least 1)
+
+Ideally I can create a function that does this when given a data frame.
