@@ -22,3 +22,8 @@ Create specific unseen movies ratings from sum of baseline global,baseline user 
 Perhaps recommend movie based on highest unseen for each user? (at least 1)
 
 Ideally I can create a function that does this when given a data frame.
+
+
+# Codebase:
+
+After setting up the data in github for the raw, I perform the usual setup for the R envrionment.
