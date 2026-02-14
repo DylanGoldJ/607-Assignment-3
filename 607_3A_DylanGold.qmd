@@ -157,7 +157,7 @@ rec_movies
 ```
 
 We now have values for the predicted movie. I want to join this with the original while and having NA fill in for the values not in this.
-We should be able to just join for this to happen. We can use the original df as the anchor for the join. We just want the precicted movie column
+We should be able to just join for this to happen. We can use the original df as the anchor for the join. We just want the predicted movie column
 
 ```{r}
 # We get just the Critic and Predicted_Movie and join that to our original dataframe.
