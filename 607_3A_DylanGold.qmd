@@ -136,6 +136,7 @@ create_estimate_df <- function(df, users_mean, movies_mean, global_mean){
     }
   }
   df_matrix <-as.data.frame(estimated_review) %>% select(movies)#convert back to data frame, select movies because we duplicated a column(got rid of critic column for indexed by critic)
+  
   return(df_matrix)
 }
 estimated_review <- create_estimate_df(df, user_avg, movie_avg, global_avg)
@@ -145,19 +146,28 @@ estimated_review
 We now have a matrix showing the generated scores. NA values are shows that they have already seen
 Finally we can go row wise to find the max score for each person. 
 ```{r}
-
-estimated_movies <- as.data.frame(estimated_review) %>% 
-  rowwise() %>% 
-  mutate(Predicted_Movie = colnames(estimated_movies)[which.max(c_across(movies))])
-
-
-estimated_movies
-
+#Save rownames because tibble operations remove rownames(they are discouraged, we can add back as a column at the end after our work.)
+rec_movies <- estimated_review %>% 
+  rownames_to_column("Critic") %>%
+  rowwise() %>% #Row wise
+  filter(any(!is.na(c_across(movies)))) %>% #Which.max will error if a row is fully na, remove the rows that are NA
+  mutate(Recommended_Movie = colnames(df)[which.max(c_across(movies))])  #Create new column, get max index, then use that index in col names to get the movie
+  
+rec_movies
 ```
 
+We now have values for the predicted movie. I want to join this with the original while and having NA fill in for the values not in this.
+We should be able to just join for this to happen. We can use the original df as the anchor for the join. We just want the precicted movie column
+
+```{r}
+# We get just the Critic and Predicted_Movie and join that to our original dataframe.
+ratings_with_recommendation<- left_join(df, estimated_movies[, c("Critic", "Recommended_Movie")], "Critic")
+ratings_with_recommendation
+```
+We now have the recommended movie for all users who did not see all the movies. The ones who did see all movies have NA as their Recommended Movie
 
 #Conclusion
-In this assignment we were able to heavily modify a data frame based on a given algorithm. By breaking the algorithm into different steps we were able to sequentially create different values needed to generate an estimate for each movie each user has not seen yet. With this we could find the movie that would be most suggested to them based on the algorithm. Some ways I could add on to this is make the whole things more modular such that when any data frame with the same format is put in, it can generate the most recommended movie for each user. I also feel like the double looping with a matrix may have been a bit naive and maybe theres a better way to do that in the future.
+In this assignment we were able to heavily modify a data frame based on a given algorithm. By breaking the algorithm into different steps we were able to sequentially create different values needed to generate an estimate for each movie each user has not seen yet. With this we could find the movie that would be most suggested to them based on the algorithm. Some ways I could add on to this is make the whole things more modular such that when any data frame with the same format is put in, it can generate the most recommended movie for each user. I also feel like the double looping with a matrix may have been a bit poor and maybe there is a better way to do that in the future.
 
 
 
