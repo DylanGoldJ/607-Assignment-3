@@ -47,7 +47,7 @@ df <- df %>% set_names("Critic", "CaptainAmerica", "Deadpool", "Frozen", "Jungle
 tail(df, 5)
 ```
 
-Now: Create baseline from average of all movies. Generate averages of users Generate averages of movies
+Now create baseline from average of all movies. Generate averages of users Generate averages of movies
 
 Create a vector for the averages of the columns(Movie avg)
 
@@ -56,7 +56,7 @@ Create a vector for the averages of the columns(Movie avg)
 movies <- c("CaptainAmerica", "Deadpool", "Frozen", "JungleBook", "PitchPerfect2", "StarWarsForce")
 # This following line was kind of tricky for me. My understanding is ~ creates a function where the period is the input. across uses this function down the columns
 # The function we created with ~ is just get the mean with all the column values as input, we also specify the columns before hand.
-movie_avg <- df %>% summarize(across(movies, ~ mean(., na.rm = TRUE)))
+movie_avg <- df %>% summarize(across(all_of(movies), ~ mean(., na.rm = TRUE)))
 movie_avg
 ```
 
@@ -65,7 +65,7 @@ Get the user_mean
 ```{r}
 user_avg <- df %>%
   rowwise() %>%
-  summarize(user_mean = mean(c_across(movies), na.rm = TRUE)) #c_across with rowwise to perform row-wise aggregations
+  summarize(user_mean = mean(c_across(all_of(movies)), na.rm = TRUE)) #c_across with rowwise to perform row-wise aggregations
 user_avg
 ```
 
@@ -126,12 +126,12 @@ create_estimate_df <- function(df, users_mean, movies_mean, global_mean){
              df_matrix[critic, movie_name] <- NA) #otherwise set NA
     }
   }
-  df_matrix <-as.data.frame(estimated_review) %>% select(movies)#convert back to data frame, select movies because we duplicated a column(got rid of critic column for indexed by critic)
+  df_matrix <-as.data.frame(df_matrix) %>% select(movies)#convert back to data frame, select movies because we duplicated a column(got rid of critic column for indexed by critic)
   
   return(df_matrix)
 }
 estimated_review <- create_estimate_df(df, user_avg, movie_avg, global_avg)
-estimated_review
+head(estimated_review)
 ```
 
 We now have a matrix showing the generated scores. NA values are shows that they have already seen Finally we can go row wise to find the max score for each person.
@@ -151,10 +151,12 @@ We now have values for the predicted movie. I want to join this with the origina
 
 ```{r}
 # We get just the Critic and Predicted_Movie and join that to our original dataframe.
-ratings_with_recommendation<- left_join(df, estimated_movies[, c("Critic", "Recommended_Movie")], "Critic")
+ratings_with_recommendation<- left_join(df, rec_movies[, c("Critic", "Recommended_Movie")], "Critic")
 ratings_with_recommendation
 ```
 
 We now have the recommended movie for all users who did not see all the movies. The ones who did see all movies have NA as their Recommended Movie
 
-#Conclusion In this assignment we were able to heavily modify a data frame based on a given algorithm. By breaking the algorithm into different steps we were able to sequentially create different values needed to generate an estimate for each movie each user has not seen yet. With this we could find the movie that would be most suggested to them based on the algorithm. Some ways I could add on to this is make the whole things more modular such that when any data frame with the same format is put in, it can generate the most recommended movie for each user. I also feel like the double looping with a matrix may have been a bit poor and maybe there is a better way to do that in the future.
+# Conclusion
+
+In this assignment we were able to heavily modify a data frame based on a given algorithm. By breaking the algorithm into different steps we were able to sequentially create different values needed to generate an estimate for each movie each user has not seen yet. With this we could find the movie that would be most suggested to them based on the algorithm. Some ways I could add on to this is make the whole things more modular such that when any data frame with the same format is put in, it can generate the most recommended movie for each user. I also feel like the double looping with a matrix may have been a bit poor and maybe there is a better way to do that in the future.
