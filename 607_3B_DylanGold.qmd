@@ -167,15 +167,8 @@ head(df_6dayAvg)
 
 We now have a data frame with an average of every 6 days for the load for Captial and NYC.
 
-I will create graphs showing this
-
-```{r}
-ggplot(df_6dayAvg, aes(x = Date,y = Capital_Load_SixAvg)) + 
-  geom_point() +
-  geom_line() +
-  labs(y = "Load (MegaWatts)", title = "Average Daily Capital Load Per Year 2022-2025")
-```
-Our 6 day average capital graph
+I will create graphs showing this,
+Our 6 day average NYC graph
 ```{r}
 ggplot(df_6dayAvg, aes(x = Date,y = NYC_Load_SixAvg)) + 
   geom_point() +
@@ -183,14 +176,14 @@ ggplot(df_6dayAvg, aes(x = Date,y = NYC_Load_SixAvg)) +
   labs(y = "Load (MegaWatts)", title = "6 Day Moving Average NYC Load 2022-2025")
 ```
 
-Our 6 day average NYC graph
+Our 6 day average Capital graph
 ```{r}
 ggplot(df_6dayAvg, aes(x = Date,y = Capital_Load_SixAvg)) + 
   geom_point() +
   geom_line() +
   labs(y = "Load (MegaWatts)", title = "Average Daily Capital Load Per Year 2022-2025")
 ```
-We can see both these graphs have a similar trend, spiking up towards the middle of the year each year to some extent.
+We can see both these graphs have a similar trend, spiking up towards the middle of the year each year to some extent. Something to note is how we don't have a full year of 2025 data.
 
 
 ## Conclusion

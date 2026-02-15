@@ -20,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -64,13 +99,352 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="assignment-3b-dylan-gold" class="level2">
-<h2 class="anchored" data-anchor-id="assignment-3b-dylan-gold">607 Assignment 3B Dylan Gold</h2>
-</section>
-<section id="approach" class="level1">
-<h1>Approach</h1>
+<section id="assignment-3b-dylan-gold" class="level1">
+<h1>607 Assignment 3B Dylan Gold</h1>
+<section id="approach" class="level2">
+<h2 class="anchored" data-anchor-id="approach">Approach</h2>
 <p>In this assignment we have to work with a data set that has time series. We have to find/generate a data set then use sql or dplyr to calculate the average from year to year, as well as every 6 days I will find something online, maybe ask a LLM to generate one or give me ideas.</p>
 <p>I will likely get the data as a csv onto github then use dplyr to create these averages after importing the data into R</p>
+</section>
+<section id="codebase" class="level2">
+<h2 class="anchored" data-anchor-id="codebase">Codebase:</h2>
+<p>I started off by asking a LLM, (GPT 4) to give me a data set that satisfied the conditions for this assignment. The LLM conversation is in the LLM_Conversation3B.txt file. It asked me to be a bit more specific on what kind of data I wanted. Due to the price of electricity going a lot these days, from what I have heard in large part due to data centers being built. I was curious about this so I told the LLM to give me some data on this.</p>
+<p>The LLM prompted me to go to www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_YYYY.csv By changing the YYYY to a specific year we could get different years.</p>
+<p>The LLM suggested I download the years I wanted then condense it into daily information. This is what I did. I got data from 2022 to 2025. Because the file size is large, I decided to just download directly without saving the file into github.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Get the 2022 Data</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"http://www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_2022.csv"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>df_22<span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> url,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">skip =</span> <span class="dv">3</span> <span class="co"># First three lines are not apart of the data</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_22, <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 16
+   UTC Timestamp (Interval Endin…¹ Local Timestamp East…² Local Timestamp East…³
+   &lt;dttm&gt;                          &lt;dttm&gt;                 &lt;dttm&gt;                
+ 1 2022-01-01 06:00:00             2022-01-01 00:00:00    2022-01-01 01:00:00   
+ 2 2022-01-01 07:00:00             2022-01-01 01:00:00    2022-01-01 02:00:00   
+ 3 2022-01-01 08:00:00             2022-01-01 02:00:00    2022-01-01 03:00:00   
+ 4 2022-01-01 09:00:00             2022-01-01 03:00:00    2022-01-01 04:00:00   
+ 5 2022-01-01 10:00:00             2022-01-01 04:00:00    2022-01-01 05:00:00   
+ 6 2022-01-01 11:00:00             2022-01-01 05:00:00    2022-01-01 06:00:00   
+ 7 2022-01-01 12:00:00             2022-01-01 06:00:00    2022-01-01 07:00:00   
+ 8 2022-01-01 13:00:00             2022-01-01 07:00:00    2022-01-01 08:00:00   
+ 9 2022-01-01 14:00:00             2022-01-01 08:00:00    2022-01-01 09:00:00   
+10 2022-01-01 15:00:00             2022-01-01 09:00:00    2022-01-01 10:00:00   
+# ℹ abbreviated names: ¹​`UTC Timestamp (Interval Ending)`,
+#   ²​`Local Timestamp Eastern Time (Interval Beginning)`,
+#   ³​`Local Timestamp Eastern Time (Interval Ending)`
+# ℹ 13 more variables: `Local Date` &lt;date&gt;, `Hour Number` &lt;dbl&gt;,
+#   `F - Capital Actual Load (MW)` &lt;dbl&gt;, `C - Central Actual Load (MW)` &lt;dbl&gt;,
+#   `I - Dunwoodie Actual Load (MW)` &lt;dbl&gt;,
+#   `B - Genessee Actual Load (MW)` &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<p>Get the 2023 Data</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"http://www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_2023.csv"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>df_23<span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> url,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">skip =</span> <span class="dv">3</span> </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_23, <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 16
+   UTC Timestamp (Interval Endin…¹ Local Timestamp East…² Local Timestamp East…³
+   &lt;dttm&gt;                          &lt;dttm&gt;                 &lt;dttm&gt;                
+ 1 2023-01-01 06:00:00             2023-01-01 00:00:00    2023-01-01 01:00:00   
+ 2 2023-01-01 07:00:00             2023-01-01 01:00:00    2023-01-01 02:00:00   
+ 3 2023-01-01 08:00:00             2023-01-01 02:00:00    2023-01-01 03:00:00   
+ 4 2023-01-01 09:00:00             2023-01-01 03:00:00    2023-01-01 04:00:00   
+ 5 2023-01-01 10:00:00             2023-01-01 04:00:00    2023-01-01 05:00:00   
+ 6 2023-01-01 11:00:00             2023-01-01 05:00:00    2023-01-01 06:00:00   
+ 7 2023-01-01 12:00:00             2023-01-01 06:00:00    2023-01-01 07:00:00   
+ 8 2023-01-01 13:00:00             2023-01-01 07:00:00    2023-01-01 08:00:00   
+ 9 2023-01-01 14:00:00             2023-01-01 08:00:00    2023-01-01 09:00:00   
+10 2023-01-01 15:00:00             2023-01-01 09:00:00    2023-01-01 10:00:00   
+# ℹ abbreviated names: ¹​`UTC Timestamp (Interval Ending)`,
+#   ²​`Local Timestamp Eastern Time (Interval Beginning)`,
+#   ³​`Local Timestamp Eastern Time (Interval Ending)`
+# ℹ 13 more variables: `Local Date` &lt;date&gt;, `Hour Number` &lt;dbl&gt;,
+#   `F - Capital Actual Load (MW)` &lt;dbl&gt;, `C - Central Actual Load (MW)` &lt;dbl&gt;,
+#   `I - Dunwoodie Actual Load (MW)` &lt;dbl&gt;,
+#   `B - Genessee Actual Load (MW)` &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<p>Get the 2024 Data</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"http://www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_2024.csv"</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>df_24<span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> url,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">skip =</span> <span class="dv">3</span> </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_24, <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 16
+   UTC Timestamp (Interval Endin…¹ Local Timestamp East…² Local Timestamp East…³
+   &lt;dttm&gt;                          &lt;dttm&gt;                 &lt;dttm&gt;                
+ 1 2024-01-01 06:00:00             2024-01-01 00:00:00    2024-01-01 01:00:00   
+ 2 2024-01-01 07:00:00             2024-01-01 01:00:00    2024-01-01 02:00:00   
+ 3 2024-01-01 08:00:00             2024-01-01 02:00:00    2024-01-01 03:00:00   
+ 4 2024-01-01 09:00:00             2024-01-01 03:00:00    2024-01-01 04:00:00   
+ 5 2024-01-01 10:00:00             2024-01-01 04:00:00    2024-01-01 05:00:00   
+ 6 2024-01-01 11:00:00             2024-01-01 05:00:00    2024-01-01 06:00:00   
+ 7 2024-01-01 12:00:00             2024-01-01 06:00:00    2024-01-01 07:00:00   
+ 8 2024-01-01 13:00:00             2024-01-01 07:00:00    2024-01-01 08:00:00   
+ 9 2024-01-01 14:00:00             2024-01-01 08:00:00    2024-01-01 09:00:00   
+10 2024-01-01 15:00:00             2024-01-01 09:00:00    2024-01-01 10:00:00   
+# ℹ abbreviated names: ¹​`UTC Timestamp (Interval Ending)`,
+#   ²​`Local Timestamp Eastern Time (Interval Beginning)`,
+#   ³​`Local Timestamp Eastern Time (Interval Ending)`
+# ℹ 13 more variables: `Local Date` &lt;date&gt;, `Hour Number` &lt;dbl&gt;,
+#   `F - Capital Actual Load (MW)` &lt;dbl&gt;, `C - Central Actual Load (MW)` &lt;dbl&gt;,
+#   `I - Dunwoodie Actual Load (MW)` &lt;dbl&gt;,
+#   `B - Genessee Actual Load (MW)` &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<p>Get the 2025 Data, I notice it only goes 6 months in.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"http://www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_2025.csv"</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>df_25<span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> url,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">skip =</span> <span class="dv">3</span> </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_25, <span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 16
+   UTC Timestamp (Interval Endin…¹ Local Timestamp East…² Local Timestamp East…³
+   &lt;dttm&gt;                          &lt;dttm&gt;                 &lt;dttm&gt;                
+ 1 2025-01-01 06:00:00             2025-01-01 00:00:00    2025-01-01 01:00:00   
+ 2 2025-01-01 07:00:00             2025-01-01 01:00:00    2025-01-01 02:00:00   
+ 3 2025-01-01 08:00:00             2025-01-01 02:00:00    2025-01-01 03:00:00   
+ 4 2025-01-01 09:00:00             2025-01-01 03:00:00    2025-01-01 04:00:00   
+ 5 2025-01-01 10:00:00             2025-01-01 04:00:00    2025-01-01 05:00:00   
+ 6 2025-01-01 11:00:00             2025-01-01 05:00:00    2025-01-01 06:00:00   
+ 7 2025-01-01 12:00:00             2025-01-01 06:00:00    2025-01-01 07:00:00   
+ 8 2025-01-01 13:00:00             2025-01-01 07:00:00    2025-01-01 08:00:00   
+ 9 2025-01-01 14:00:00             2025-01-01 08:00:00    2025-01-01 09:00:00   
+10 2025-01-01 15:00:00             2025-01-01 09:00:00    2025-01-01 10:00:00   
+# ℹ abbreviated names: ¹​`UTC Timestamp (Interval Ending)`,
+#   ²​`Local Timestamp Eastern Time (Interval Beginning)`,
+#   ³​`Local Timestamp Eastern Time (Interval Ending)`
+# ℹ 13 more variables: `Local Date` &lt;date&gt;, `Hour Number` &lt;dbl&gt;,
+#   `F - Capital Actual Load (MW)` &lt;dbl&gt;, `C - Central Actual Load (MW)` &lt;dbl&gt;,
+#   `I - Dunwoodie Actual Load (MW)` &lt;dbl&gt;,
+#   `B - Genessee Actual Load (MW)` &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<p>Now we can combine them into a single dataframe with Rbind, they have the same columns so it should be fine. I see in the R global environment that df now has 34656 values, which is the total of all 4 data frames (4* 8664)</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>df_22to25 <span class="ot">&lt;-</span> df_22 <span class="sc">%&gt;%</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rbind</span>(df_23, .) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rbind</span>(df_24, .) <span class="sc">%&gt;%</span>  <span class="co"># . is like the pipe input</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rbind</span>(df_25, .) <span class="co">#We can pipe the rbind to bind them all at once.</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_22to25)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 16
+  UTC Timestamp (Interval Ending…¹ Local Timestamp East…² Local Timestamp East…³
+  &lt;dttm&gt;                           &lt;dttm&gt;                 &lt;dttm&gt;                
+1 2025-01-01 06:00:00              2025-01-01 00:00:00    2025-01-01 01:00:00   
+2 2025-01-01 07:00:00              2025-01-01 01:00:00    2025-01-01 02:00:00   
+3 2025-01-01 08:00:00              2025-01-01 02:00:00    2025-01-01 03:00:00   
+4 2025-01-01 09:00:00              2025-01-01 03:00:00    2025-01-01 04:00:00   
+5 2025-01-01 10:00:00              2025-01-01 04:00:00    2025-01-01 05:00:00   
+6 2025-01-01 11:00:00              2025-01-01 05:00:00    2025-01-01 06:00:00   
+# ℹ abbreviated names: ¹​`UTC Timestamp (Interval Ending)`,
+#   ²​`Local Timestamp Eastern Time (Interval Beginning)`,
+#   ³​`Local Timestamp Eastern Time (Interval Ending)`
+# ℹ 13 more variables: `Local Date` &lt;date&gt;, `Hour Number` &lt;dbl&gt;,
+#   `F - Capital Actual Load (MW)` &lt;dbl&gt;, `C - Central Actual Load (MW)` &lt;dbl&gt;,
+#   `I - Dunwoodie Actual Load (MW)` &lt;dbl&gt;,
+#   `B - Genessee Actual Load (MW)` &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<p>Now we can clean the data. There are a lot of columns giving us information on different places. I will just get some that I find interesting. We also are going to combine the hourly data to daily data. We can do this by grouping by the local date and summing up values in this So I will select the local date, as well as New York City load and Capital Actual Load</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">select</span>(df_22to25, <span class="st">"Local Date"</span>, <span class="st">"J - New York City Actual Load (MW)"</span>, <span class="st">"F - Capital Actual Load (MW)"</span> ) <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Date =</span> <span class="st">"Local Date"</span>, <span class="at">NYC_Load_MW =</span> <span class="st">"J - New York City Actual Load (MW)"</span>,<span class="at">Capital_Load_MW=</span> <span class="st">"F - Capital Actual Load (MW)"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  Date       NYC_Load_MW Capital_Load_MW
+  &lt;date&gt;           &lt;dbl&gt;           &lt;dbl&gt;
+1 2025-01-01       4680.           1163.
+2 2025-01-01       4518.           1154.
+3 2025-01-01       4400.           1122.
+4 2025-01-01       4292.           1104.
+5 2025-01-01       4221.           1102.
+6 2025-01-01       4276.           1117.</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># New columns will be NYC_Load(MW) and Capital_Load(MW) which are the sum of the old ones. We can do this with summarise</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>df_daily <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(Date) <span class="sc">%&gt;%</span> </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">NYC_Load_MW =</span> <span class="fu">sum</span>(NYC_Load_MW),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Capital_Load_MW =</span> <span class="fu">sum</span>(Capital_Load_MW)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">tail</span>(df_daily)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  Date       NYC_Load_MW Capital_Load_MW
+  &lt;date&gt;           &lt;dbl&gt;           &lt;dbl&gt;
+1 2025-06-18     145166.          32286.
+2 2025-06-19     164145.          37476.
+3 2025-06-20     155307.          31819.
+4 2025-06-21     154500.          31061.
+5 2025-06-22     166034.          36609.
+6 2025-06-23     151965.          29771.</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>df_daily</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1,204 × 3
+   Date       NYC_Load_MW Capital_Load_MW
+   &lt;date&gt;           &lt;dbl&gt;           &lt;dbl&gt;
+ 1 2022-01-01     111514.          29764.
+ 2 2022-01-02     112472.          31662.
+ 3 2022-01-03     134730.          36325.
+ 4 2022-01-04     139265.          36847.
+ 5 2022-01-05     134372.          35364.
+ 6 2022-01-06     132235.          34393.
+ 7 2022-01-07     137456.          35448.
+ 8 2022-01-08     133163.          35288.
+ 9 2022-01-09     117183.          32005.
+10 2022-01-10     138840.          35872.
+# ℹ 1,194 more rows</code></pre>
+</div>
+</div>
+<p>We now have a data frame containing the daily NYC Load and Captial_Load in megawatts from 2022 to 2025.</p>
+<p>Lets now get the year to date average. From what I looked up that is just the daily average over the course of a calendar/fiscal year. Our date starts on on 1-1 so we just need to group by the same year then get the mean</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>df_YTD <span class="ot">&lt;-</span> df_daily <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="at">Year =</span> <span class="fu">format</span>(Date, <span class="st">"%Y"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">NYC_Load_YearAvg =</span> <span class="fu">mean</span>(NYC_Load_MW),</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Capital_Load_YearAvg=</span> <span class="fu">mean</span>(Capital_Load_MW)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    ) </span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">#Also rename the groupby column</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>df_YTD</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  Year  NYC_Load_YearAvg Capital_Load_YearAvg
+  &lt;chr&gt;            &lt;dbl&gt;                &lt;dbl&gt;
+1 2022           134740.               32345.
+2 2023           127525.               29899.
+3 2024           134573.               30768.
+4 2025           129013.               30778.</code></pre>
+</div>
+</div>
+<p>We can also plot this</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_YTD, <span class="fu">aes</span>(<span class="at">x =</span> Year,<span class="at">y =</span> NYC_Load_YearAvg)) <span class="sc">+</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Load (MegaWatts)"</span>, <span class="at">title =</span> <span class="st">"Average Daily NYC Load Per Year 2022-2025"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="607_3B_DylanGold_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_YTD, <span class="fu">aes</span>(<span class="at">x =</span> Year,<span class="at">y =</span> Capital_Load_YearAvg)) <span class="sc">+</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Load (MegaWatts)"</span>, <span class="at">title =</span> <span class="st">"Average Daily Capital Load Per Year 2022-2025"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="607_3B_DylanGold_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can now move on to creating a 6 day moving average. We need to get the average for every 6 days</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># To do this, from what I have seen we can create a new column to group.</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">#We generate this column with the integer divison operator %/%. By doing this we can see which group the current row is on based on its row index</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>segment <span class="ot">=</span> <span class="dv">6</span> <span class="co">#Value for how often we want to segment the data</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>df_6dayAvg <span class="ot">&lt;-</span> df_daily <span class="sc">%&gt;%</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">group =</span> (<span class="fu">row_number</span>() <span class="sc">%/%</span> segment)) <span class="sc">%&gt;%</span> <span class="co">#Create the grouping row</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(group) <span class="sc">%&gt;%</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">Date =</span> <span class="fu">min</span>(Date), <span class="co">#Get the first date as the date for the 6 day grouping</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">NYC_Load_SixAvg =</span> <span class="fu">mean</span>(NYC_Load_MW),</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">Capital_Load_SixAvg=</span> <span class="fu">mean</span>(Capital_Load_MW)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>group) <span class="co"># Remove the grouping column we made for this</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_6dayAvg)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  Date       NYC_Load_SixAvg Capital_Load_SixAvg
+  &lt;date&gt;               &lt;dbl&gt;               &lt;dbl&gt;
+1 2022-01-01         126471.              33992.
+2 2022-01-06         134562.              35303.
+3 2022-01-12         135406.              36533.
+4 2022-01-18         135273.              35831.
+5 2022-01-24         139994.              37039.
+6 2022-01-30         139791.              37213.</code></pre>
+</div>
+</div>
+<p>We now have a data frame with an average of every 6 days for the load for Captial and NYC.</p>
+<p>I will create graphs showing this, Our 6 day average NYC graph</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_6dayAvg, <span class="fu">aes</span>(<span class="at">x =</span> Date,<span class="at">y =</span> NYC_Load_SixAvg)) <span class="sc">+</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Load (MegaWatts)"</span>, <span class="at">title =</span> <span class="st">"6 Day Moving Average NYC Load 2022-2025"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="607_3B_DylanGold_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Our 6 day average Capital graph</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_6dayAvg, <span class="fu">aes</span>(<span class="at">x =</span> Date,<span class="at">y =</span> Capital_Load_SixAvg)) <span class="sc">+</span> </span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">"Load (MegaWatts)"</span>, <span class="at">title =</span> <span class="st">"Average Daily Capital Load Per Year 2022-2025"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="607_3B_DylanGold_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can see both these graphs have a similar trend, spiking up towards the middle of the year each year to some extent. Something to note is how we don’t have a full year of 2025 data.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>In this assignment we had to work with data frames with date attributes to create different data frames based on time intervals. I found the problem at least when using dplyr is figuring out how to group the data. Using the integer division operator is a nice way of segmenting the data into different groups but depending on your criteria you could group the data very differently. Something I would maybe add on to this assignment is exploring the other columns that I skipped at the start and maybe seeing the relationship between them, ultimately how the capital and central load are influenced on other columns and by how much.</p>
+</section>
 </section>
 
 </main>
