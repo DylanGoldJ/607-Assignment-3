@@ -21,7 +21,7 @@ The LLM prompted me to go to www.eia.gov/electricity/wholesalemarkets/csv/nyiso_
 By changing the YYYY to a specific year we could get different years.
 
 The LLM suggested I download the years I wanted then condense it into daily information. This is what I did. I got data from 2022 to 2025.
-Because the file size is large, I decided to just download directly without importing it into github.
+Because the file size is large, I decided to just download directly without saving the file into github.
 
 ```{r , message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -34,10 +34,164 @@ Get the 2022 Data
 ```{r, warning=FALSE}
 url <- "http://www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_2022.csv"
 
-df <- read_csv(
+df_22<- read_csv(
   file = url,
-  show_col_types = FALSE
+  show_col_types = FALSE, 
+  skip = 3 # First three lines are not apart of the data
 )
 
-head(df, 10)
+head(df_22, 10)
 ```
+
+
+
+Get the 2023 Data
+```{r, warning=FALSE}
+url <- "http://www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_2023.csv"
+
+df_23<- read_csv(
+  file = url,
+  show_col_types = FALSE, 
+  skip = 3 
+)
+
+head(df_23, 10)
+```
+
+Get the 2024 Data
+```{r, warning=FALSE}
+url <- "http://www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_2024.csv"
+
+df_24<- read_csv(
+  file = url,
+  show_col_types = FALSE, 
+  skip = 3 
+)
+
+head(df_24, 10)
+```
+
+Get the 2025 Data, I notice it only goes 6 months in.
+```{r, warning=FALSE}
+url <- "http://www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_2025.csv"
+
+df_25<- read_csv(
+  file = url,
+  show_col_types = FALSE, 
+  skip = 3 
+)
+
+head(df_25, 10)
+```
+
+Now we can combine them into a single dataframe with Rbind, they have the same columns so it should be fine.
+I see in the R global environment that df now has 34656 values, which is the total of all 4 data frames (4* 8664)
+
+```{r}
+df_22to25 <- df_22 %>% 
+  rbind(df_23, .) %>% 
+  rbind(df_24, .) %>%  # . is like the pipe input
+  rbind(df_25, .) #We can pipe the rbind to bind them all at once.
+  
+#
+head(df_22to25)
+```
+
+Now we can clean the data. There are a lot of columns giving us information on different places. I will just get some that I find interesting.
+We also are going to combine the hourly data to daily data. We can do this by grouping by the local date and summing up values in this
+So I will select the local date, as well as New York City load and Capital Actual Load
+```{r}
+df <- select(df_22to25, "Local Date", "J - New York City Actual Load (MW)", "F - Capital Actual Load (MW)" ) %>%
+  rename(Date = "Local Date", NYC_Load_MW = "J - New York City Actual Load (MW)",Capital_Load_MW= "F - Capital Actual Load (MW)")
+head(df)
+```
+
+```{r}
+  # New columns will be NYC_Load(MW) and Capital_Load(MW) which are the sum of the old ones. We can do this with summarise
+df_daily <- df %>% group_by(Date) %>% 
+  summarize(
+    NYC_Load_MW = sum(NYC_Load_MW),
+    Capital_Load_MW = sum(Capital_Load_MW)
+  )
+tail(df_daily)
+df_daily
+```
+
+We now have a data frame containing the daily NYC Load and Captial_Load in megawatts from 2022 to 2025.
+
+Lets now get the year to date average. From what I looked up that is just the daily average over the course of a calendar/fiscal year. 
+Our date starts on on 1-1 so we just need to group by the same year then get the mean
+
+```{r}
+df_YTD <- df_daily %>%
+  group_by(Year = format(Date, "%Y")) %>%
+  summarize(
+    NYC_Load_YearAvg = mean(NYC_Load_MW),
+    Capital_Load_YearAvg= mean(Capital_Load_MW)
+    ) 
+  #Also rename the groupby column
+df_YTD
+
+```
+We can also plot this
+```{r}
+ggplot(df_YTD, aes(x = Year,y = NYC_Load_YearAvg)) + 
+  geom_point() +
+  labs(y = "Load (MegaWatts)", title = "Average Daily NYC Load Per Year 2022-2025")
+```
+```{r}
+ggplot(df_YTD, aes(x = Year,y = Capital_Load_YearAvg)) + 
+  geom_point() +
+  labs(y = "Load (MegaWatts)", title = "Average Daily Capital Load Per Year 2022-2025")
+```
+We can now move on to creating a 6 day moving average. 
+We need to get the average for every 6 days
+```{r}
+# To do this, from what I have seen we can create a new column to group.
+#We generate this column with the integer divison operator %/%. By doing this we can see which group the current row is on based on its row index
+
+segment = 6 #Value for how often we want to segment the data
+
+df_6dayAvg <- df_daily %>%
+  mutate(group = (row_number() %/% segment)) %>% #Create the grouping row
+  group_by(group) %>%
+  summarize(
+    Date = min(Date), #Get the first date as the date for the 6 day grouping
+    NYC_Load_SixAvg = mean(NYC_Load_MW),
+    Capital_Load_SixAvg= mean(Capital_Load_MW)
+  ) %>% 
+  select(-group) # Remove the grouping column we made for this
+  
+head(df_6dayAvg)
+```
+
+We now have a data frame with an average of every 6 days for the load for Captial and NYC.
+
+I will create graphs showing this
+
+```{r}
+ggplot(df_6dayAvg, aes(x = Date,y = Capital_Load_SixAvg)) + 
+  geom_point() +
+  geom_line() +
+  labs(y = "Load (MegaWatts)", title = "Average Daily Capital Load Per Year 2022-2025")
+```
+Our 6 day average capital graph
+```{r}
+ggplot(df_6dayAvg, aes(x = Date,y = NYC_Load_SixAvg)) + 
+  geom_point() +
+  geom_line() +
+  labs(y = "Load (MegaWatts)", title = "6 Day Moving Average NYC Load 2022-2025")
+```
+
+Our 6 day average NYC graph
+```{r}
+ggplot(df_6dayAvg, aes(x = Date,y = Capital_Load_SixAvg)) + 
+  geom_point() +
+  geom_line() +
+  labs(y = "Load (MegaWatts)", title = "Average Daily Capital Load Per Year 2022-2025")
+```
+We can see both these graphs have a similar trend, spiking up towards the middle of the year each year to some extent.
+
+
+## Conclusion
+In this assignment we had to work with data frames with date attributes to create different data frames based on time intervals. I found the problem at least when using dplyr is figuring out how to group the data. Using the integer division operator is a nice way of segmenting the data into different groups but depending on your criteria you could group the data very differently. Something I would maybe add on to this assignment is exploring the other columns that I skipped at the start and maybe seeing the relationship between them, ultimately how the capital and central load are influenced on other columns and by how much. 

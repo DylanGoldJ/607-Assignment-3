@@ -7,22 +7,14 @@ editor: visual
 ## 607 Assignment 3A Dylan Gold
 
 # Approach
-In this assignment we are making a rating system based on the ratings in assignment 2A or new data given.
-Initially I was pretty confused just looking off the xlsx document we had. Maybe I missed something there but I did not see much in the 4 tables in the document.
-After the class lecture though I understood a bit better.
+
+In this assignment we are making a rating system based on the ratings in assignment 2A or new data given. Initially I was pretty confused just looking off the xlsx document we had. Maybe I missed something there but I did not see much in the 4 tables in the document. After the class lecture though I understood a bit better.
 
 I will use the data given to us. The data I collected is pretty high ratings cause I just picked shows that I liked, and my friends have discussed who also generally like. So it seems kind of biased for a global baseline.
 
-From the lecture we break this down into these steps:
-Create baseline from average of all movies.
-Generate averages of users
-Generate averages of movies
-Create baseline user and movie averages from difference from overall baseline.
-Create specific unseen movies ratings from sum of baseline global,baseline user and baseline movie ratings.
-Perhaps recommend movie based on highest unseen for each user? (at least 1)
+From the lecture we break this down into these steps: Create baseline from average of all movies. Generate averages of users Generate averages of movies Create baseline user and movie averages from difference from overall baseline. Create specific unseen movies ratings from sum of baseline global,baseline user and baseline movie ratings. Perhaps recommend movie based on highest unseen for each user? (at least 1)
 
 Ideally I can create a function that does this when given a data frame.
-
 
 # Codebase:
 
@@ -31,7 +23,9 @@ After setting up the data in github for the raw, I perform the usual setup for t
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse)
 ```
+
 Getting data into data frame
+
 ```{r, message=FALSE, warning=FALSE}
 url <- "https://raw.githubusercontent.com/DylanGoldJ/607-Assignment-3/refs/heads/main/MovieRatings3A.csv"
 
@@ -52,12 +46,11 @@ df <- df %>% set_names("Critic", "CaptainAmerica", "Deadpool", "Frozen", "Jungle
 
 tail(df, 5)
 ```
-Now:
-Create baseline from average of all movies.
-Generate averages of users
-Generate averages of movies
+
+Now: Create baseline from average of all movies. Generate averages of users Generate averages of movies
 
 Create a vector for the averages of the columns(Movie avg)
+
 ```{r}
 # I create movies for easier selection
 movies <- c("CaptainAmerica", "Deadpool", "Frozen", "JungleBook", "PitchPerfect2", "StarWarsForce")
@@ -68,22 +61,23 @@ movie_avg
 ```
 
 Get the user_mean
+
 ```{r}
 user_avg <- df %>%
   rowwise() %>%
   summarize(user_mean = mean(c_across(movies), na.rm = TRUE)) #c_across with rowwise to perform row-wise aggregations
 user_avg
 ```
-Lets combine this with the names for readability and usability 
-We can use bind_col
+
+Lets combine this with the names for readability and usability We can use bind_col
+
 ```{r}
 user_avg <- bind_cols(select(df, c("Critic")), user_avg)
 user_avg
 ```
 
+Now we get the global baseline average: From what I seen online we can just convert to a matrix for this
 
-Now we get the global baseline average:
-From what I seen online we can just convert to a matrix for this
 ```{r}
 df_matrix <- as.matrix(select(df, movies)) #Create matrix, get rid of the column with character values
 global_avg <- mean(df_matrix, na.rm = TRUE)
@@ -92,8 +86,8 @@ global_avg
 
 We now have the values for user_avg, movie_avg and global_avg. We can check with the excel file to double check our values and it seems alright.
 
-Now we can calculate the movie scores for unseen movies. I will first create a function so we can apply it to the whole data frame.
-First a function that can create the estimate. I just give it everything for the sake of side-effects
+Now we can calculate the movie scores for unseen movies. I will first create a function so we can apply it to the whole data frame. First a function that can create the estimate. I just give it everything for the sake of side-effects
+
 ```{r}
 create_estimate <- function(user, movie, users_means, movies_means, global_mean){
   user_val <- filter(users_means, Critic == user) %>% select(user_mean) %>% pull() # Get user rating, filter cause data is multiple rows, select for mean only, pull
@@ -111,15 +105,12 @@ create_estimate <- function(user, movie, users_means, movies_means, global_mean)
 }
 create_estimate("Param", "PitchPerfect2", user_avg, movie_avg, global_avg)
 ```
-We can see that we created a function that works properly by comparing it to the example in the excel file. 
 
+We can see that we created a function that works properly by comparing it to the example in the excel file.
 
+This function will take the information we just calculated, the data frame and return a data frame with all the values filled in. I struggled to figure this out in dplyr. I believe that in dplyr you are encouraged to do either row OR column work at once. For doing stuff cell by cell it seemed like converting to a matrix was the best way.
 
-This function will take the information we just calculated, the data frame and return a data frame with all the values filled in.
-I struggled to figure this out in dplyr. I believe that in dplyr you are encouraged to do either row OR column work at once. For doing stuff cell by cell it seemed like converting to a matrix was the best way.
-
-I really tried to avoid a nested loop but I did not find how to do it while also keeping a reference to the current column and row.
-Perhaps this was a design flaw in my approach, or I could maybe bind the columns to the data frame or something but I already set up the previous function
+I really tried to avoid a nested loop but I did not find how to do it while also keeping a reference to the current column and row. Perhaps this was a design flaw in my approach, or I could maybe bind the columns to the data frame or something but I already set up the previous function
 
 ```{r}
 create_estimate_df <- function(df, users_mean, movies_mean, global_mean){
@@ -143,8 +134,8 @@ estimated_review <- create_estimate_df(df, user_avg, movie_avg, global_avg)
 estimated_review
 ```
 
-We now have a matrix showing the generated scores. NA values are shows that they have already seen
-Finally we can go row wise to find the max score for each person. 
+We now have a matrix showing the generated scores. NA values are shows that they have already seen Finally we can go row wise to find the max score for each person.
+
 ```{r}
 #Save rownames because tibble operations remove rownames(they are discouraged, we can add back as a column at the end after our work.)
 rec_movies <- estimated_review %>% 
@@ -156,19 +147,14 @@ rec_movies <- estimated_review %>%
 rec_movies
 ```
 
-We now have values for the predicted movie. I want to join this with the original while and having NA fill in for the values not in this.
-We should be able to just join for this to happen. We can use the original df as the anchor for the join. We just want the predicted movie column
+We now have values for the predicted movie. I want to join this with the original while and having NA fill in for the values not in this. We should be able to just join for this to happen. We can use the original df as the anchor for the join. We just want the predicted movie column
 
 ```{r}
 # We get just the Critic and Predicted_Movie and join that to our original dataframe.
 ratings_with_recommendation<- left_join(df, estimated_movies[, c("Critic", "Recommended_Movie")], "Critic")
 ratings_with_recommendation
 ```
+
 We now have the recommended movie for all users who did not see all the movies. The ones who did see all movies have NA as their Recommended Movie
 
-#Conclusion
-In this assignment we were able to heavily modify a data frame based on a given algorithm. By breaking the algorithm into different steps we were able to sequentially create different values needed to generate an estimate for each movie each user has not seen yet. With this we could find the movie that would be most suggested to them based on the algorithm. Some ways I could add on to this is make the whole things more modular such that when any data frame with the same format is put in, it can generate the most recommended movie for each user. I also feel like the double looping with a matrix may have been a bit poor and maybe there is a better way to do that in the future.
-
-
-
-
+#Conclusion In this assignment we were able to heavily modify a data frame based on a given algorithm. By breaking the algorithm into different steps we were able to sequentially create different values needed to generate an estimate for each movie each user has not seen yet. With this we could find the movie that would be most suggested to them based on the algorithm. Some ways I could add on to this is make the whole things more modular such that when any data frame with the same format is put in, it can generate the most recommended movie for each user. I also feel like the double looping with a matrix may have been a bit poor and maybe there is a better way to do that in the future.
