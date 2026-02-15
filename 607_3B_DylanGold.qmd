@@ -12,3 +12,32 @@ In this assignment we have to work with a data set that has time series. We have
 
 I will likely get the data as a csv onto github then use dplyr to create these averages after importing the data into R
 
+## Codebase:
+
+I started off by asking a LLM, (GPT 4) to give me a data set that satisfied the conditions for this assignment. The LLM conversation is in the LLM_Conversation3B.txt file.
+It asked me to be a bit more specific on what kind of data I wanted. Due to the price of electricity going a lot these days, from what I have heard in large part due to data centers being built. I was curious about this so I told the LLM to give me some data on this.
+
+The LLM prompted me to go to www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_YYYY.csv
+By changing the YYYY to a specific year we could get different years.
+
+The LLM suggested I download the years I wanted then condense it into daily information. This is what I did. I got data from 2022 to 2025.
+Because the file size is large, I decided to just download directly without importing it into github.
+
+```{r , message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(gt)
+
+```
+
+Get the 2022 Data
+```{r, warning=FALSE}
+url <- "http://www.eia.gov/electricity/wholesalemarkets/csv/nyiso_load_act_hr_2022.csv"
+
+df <- read_csv(
+  file = url,
+  show_col_types = FALSE
+)
+
+head(df, 10)
+```
